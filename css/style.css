@@ -179,7 +179,7 @@ body {
 .badge.office { background: rgba(56,189,248,0.15); color: var(--office); }
 .badge.holiday { background: rgba(251,113,133,0.15); color: var(--holiday); }
 
-input[type="text"], input[type="date"], select {
+input[type="text"], input[type="date"], select, textarea {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
@@ -188,6 +188,12 @@ input[type="text"], input[type="date"], select {
   color: var(--text);
   font-size: 1rem;
   margin: 6px 0 4px;
+}
+
+textarea {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  resize: vertical;
 }
 
 label { font-size: 0.85rem; color: var(--muted); }

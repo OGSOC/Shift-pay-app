@@ -89,6 +89,17 @@
 
       <h3>Active overrides</h3>
       <div id="overrides-list" class="list"></div>
+
+      <h3>Backup &amp; restore</h3>
+      <p class="muted">Your data lives only on this device, in this app. To move it to another
+        device, or between the installed app and the website version, tap Export here, copy the
+        text, then paste it into Import on the other one.</p>
+      <textarea id="backup-text" rows="4" placeholder="Export fills this box - or paste a previous export here to Import"></textarea>
+      <div class="row">
+        <button id="export-data-btn" class="ghost-btn">Export</button>
+        <button id="import-data-btn" class="primary-btn">Import</button>
+      </div>
+      <p id="backup-status" class="muted"></p>
     </section>
   </main>
 

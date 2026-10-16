@@ -165,11 +165,16 @@ That means:
   phone, or switch browsers on the same phone, and you start from the
   seed defaults in `config.js` - the two copies are independent.
 - **Clearing this browser's site data, or uninstalling the app, deletes
-  it** - there's no backup copy anywhere else. If you want one, open your
-  browser's DevTools console on the app and run
-  `localStorage.getItem('shiftPayApp.v1')` to copy out the raw JSON
-  (paste it back in with `localStorage.setItem('shiftPayApp.v1', '<that JSON>')`
-  to restore it, including on a different device/browser).
+  it** - there's no backup copy anywhere else. The installed app's
+  storage and a browser tab's storage are also separate from each other,
+  even on the same phone (see the native-app section above).
+- **Settings → Backup & restore** has Export/Import boxes for exactly
+  this: Export copies everything to a text box you can paste elsewhere
+  (a notes app, a chat to yourself, anywhere), and Import pastes it back
+  in and reloads - the way to move data to a new device, switch between
+  the web and native-app versions, or just keep a copy in case something
+  goes wrong. Import overwrites whatever is currently stored, so it asks
+  you to confirm first.
 
 ## Overtime and annual leave
 

@@ -475,6 +475,35 @@ $('#overrides-list').addEventListener('click', (e) => {
   loadToday();
 });
 
+// ---------- backup / restore ----------
+
+$('#export-data-btn').addEventListener('click', () => {
+  const box = $('#backup-text');
+  box.value = exportData();
+  box.focus();
+  box.select();
+  $('#backup-status').textContent = 'Copy the text above, then paste it into Import on the other device/app.';
+});
+
+$('#import-data-btn').addEventListener('click', () => {
+  const status = $('#backup-status');
+  const text = $('#backup-text').value.trim();
+  if (!text) {
+    status.textContent = 'Paste an exported backup into the box first.';
+    return;
+  }
+  if (!confirm('This replaces everything currently stored on this device with the pasted backup. Continue?')) {
+    return;
+  }
+  try {
+    importData(text);
+    status.textContent = 'Imported. Reloading...';
+    window.location.reload();
+  } catch (err) {
+    status.textContent = err.message;
+  }
+});
+
 // ---------- boot ----------
 
 // Registers the service worker for offline support and forces an

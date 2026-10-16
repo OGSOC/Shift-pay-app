@@ -108,6 +108,42 @@ function setPaySettings({ hourlyRate, taxCode } = {}) {
   return storeData.paySettings;
 }
 
+/**
+ * Everything this app stores, as a JSON string - for copying between
+ * devices or between a browser tab and the native app's own WebView
+ * storage (they're separate, so nothing moves across on its own). See
+ * importData() for the other direction.
+ */
+function exportData() {
+  return JSON.stringify(storeData, null, 2);
+}
+
+/**
+ * Restores a JSON string previously produced by exportData(), replacing
+ * everything currently stored. Throws on malformed input or anything
+ * that isn't shaped like this app's own data, so a stray paste can't
+ * silently wipe real data.
+ */
+function importData(json) {
+  let parsed;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error('That is not valid JSON - paste the exact text from Export.');
+  }
+  if (
+    !parsed ||
+    typeof parsed !== 'object' ||
+    typeof parsed.overrides !== 'object' ||
+    typeof parsed.hoursOverrides !== 'object' ||
+    typeof parsed.paySettings !== 'object'
+  ) {
+    throw new Error("That doesn't look like Shift & Pay data - paste the exact text from Export.");
+  }
+  storeData = parsed;
+  saveData();
+}
+
 // ---- Validated actions (replace what used to be PUT route handlers) ----
 // All of these throw a plain Error with a user-facing message on invalid
 // input - callers (app.js) catch it and show err.message, same text the
