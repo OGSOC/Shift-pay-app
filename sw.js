@@ -16,6 +16,7 @@ const SHELL_FILES = [
   './js/shiftSchedule.js',
   './js/payCalc.js',
   './js/app.js',
+  './js/native.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',

@@ -1,0 +1,26 @@
+{
+  "appId": "uk.ogsoc.shiftpay",
+  "appName": "Shift & Pay",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "backgroundColor": "#0b1f3a",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "backgroundColor": "#0b1f3a",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0b1f3a"
+    }
+  },
+  "android": {
+    "includePlugins": [
+      "@capacitor/app",
+      "@capacitor/splash-screen",
+      "@capacitor/status-bar"
+    ]
+  }
+}

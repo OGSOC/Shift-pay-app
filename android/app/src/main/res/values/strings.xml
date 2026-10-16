@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Shift &amp; Pay</string>
+    <string name="title_activity_main">Shift &amp; Pay</string>
+    <string name="package_name">uk.ogsoc.shiftpay</string>
+    <string name="custom_url_scheme">uk.ogsoc.shiftpay</string>
+</resources>
