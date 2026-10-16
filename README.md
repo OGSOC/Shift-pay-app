@@ -28,6 +28,9 @@ shift-pay-app/
   index.html, css/, icons/, manifest.webmanifest   The app shell
   js/                                               All the logic, plain scripts, no build step
   sw.js                                             Service worker: offline support + auto-update
+  capacitor.config.json, android/                  The native Android wrapper (see below)
+  scripts/build-www.sh                             Copies the shell above into www/ for Capacitor
+  .github/workflows/android-build.yml              Builds the Android .apk on every push
 ```
 
 `js/` is loaded as a sequence of plain `<script>` tags (see `index.html`)
@@ -80,7 +83,52 @@ One-time setup:
 Every future `git push` to `main` updates the live site automatically -
 no separate deploy step.
 
-### Installing on your phone
+### Installing as a native Android app (recommended)
+
+The app is also wrapped as a genuine installable Android app with
+[Capacitor](https://capacitorjs.com/) - same HTML/CSS/JS, running in a
+native WebView shell instead of a browser tab, with a proper app icon,
+a branded splash screen, a status bar matching the app's dark theme, and
+the hardware back button behaving the way every other Android app's
+does (closes the day editor, then backs out of Settings to Today,
+only exiting the app from there).
+
+Every push to `main` builds a debug `.apk` via GitHub Actions
+(`.github/workflows/android-build.yml`) - no Android SDK needed on your
+own machine:
+
+1. On GitHub: **Actions → Build Android APK** → pick the latest
+   (green) run.
+2. Scroll to **Artifacts** → download `shift-pay-debug-apk` (a zip
+   containing `app-debug.apk`).
+3. Copy the `.apk` to your phone and open it. Android will warn about
+   installing from an unknown source the first time - this is expected
+   for an app installed outside the Play Store; allow it for this file.
+
+To build it yourself instead of waiting on CI (needs Node.js + a JDK +
+the Android SDK locally):
+
+```bash
+npm install
+npm run sync        # copies the site into www/ and syncs the Android project
+cd android
+./gradlew assembleDebug
+# -> android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Data still lives entirely in `localStorage`, same as the PWA - Capacitor's
+WebView gives the app its own storage just like a browser tab would, it's
+just no longer sharing it with Chrome. It survives app restarts and
+phone reboots; only uninstalling the app clears it (see the fine print
+below).
+
+### Installing as a web app (alternative, no APK needed)
+
+Skip this if you've installed the native app above - both read/write
+the same kind of local storage, just not the same storage (a browser tab
+and the native app's WebView don't share one, so pick one and stick
+with it, or copy your data across using the backup trick in the fine
+print below).
 
 **Android (Chrome)**: open the GitHub Pages URL → menu → "Add to Home
 screen" (or Chrome may offer this automatically after a visit or two).
