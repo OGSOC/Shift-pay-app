@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1f3a" />
+  <title>Shift &amp; Pay</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Shift &amp; Pay</h1>
+  </header>
+
+  <main id="views">
+    <section id="view-today" class="view active">
+      <h2>Today</h2>
+      <div id="today-card" class="card">Loading...</div>
+      <p class="muted">Tap a day to add overtime or block it off as leave.</p>
+      <div class="cal-header">
+        <button id="shift-cal-prev" class="ghost-btn">&larr;</button>
+        <span id="shift-cal-title" class="cal-title"></span>
+        <button id="shift-cal-next" class="ghost-btn">&rarr;</button>
+      </div>
+      <div id="shift-calendar" class="cal-grid"></div>
+      <div class="cal-legend">
+        <span class="cal-legend-item"><span class="cal-dot ok"></span>Day shift</span>
+        <span class="cal-legend-item"><span class="cal-dot warn"></span>Night shift</span>
+        <span class="cal-legend-item"><span class="cal-dot office"></span>Office hours</span>
+        <span class="cal-legend-item"><span class="cal-dot leave"></span>Leave</span>
+        <span class="cal-legend-item"><span class="cal-dot holiday"></span>Bank holiday (2&times; pay if worked)</span>
+      </div>
+
+      <h3>Pay period</h3>
+      <div class="card">
+        <label>Hourly rate (&pound;)</label>
+        <input id="hourly-rate-input" type="number" min="0" step="0.01" />
+        <button id="save-pay-settings" class="primary-btn">Save</button>
+        <p class="muted">The pay period itself isn't set here &mdash; it's always the calendar month (1st to last day), paid on the 11th of the following month (the preceding Friday if the 11th falls on a weekend).</p>
+      </div>
+
+      <div class="cal-header">
+        <button id="pay-month-prev" class="ghost-btn">&larr;</button>
+        <span id="pay-month-title" class="cal-title"></span>
+        <button id="pay-month-next" class="ghost-btn">&rarr;</button>
+      </div>
+
+      <div id="pay-card-live" class="card pay-card pay-card-live">
+        <div class="pay-card-label">Earned so far <span class="badge ok">live</span></div>
+        <div id="pay-summary" class="pay-summary muted">Loading&hellip;</div>
+        <p class="muted">Counts only days up to today, for the month currently in progress. Estimate only (gross, before tax) &mdash; actual pay may differ due to rounding, employer calculations, or backdated changes.</p>
+      </div>
+
+      <div id="pay-card-forecast" class="card pay-card pay-card-forecast">
+        <div class="pay-card-label">Full period forecast <span class="badge office">projection</span></div>
+        <div id="pay-forecast" class="pay-summary muted">Loading&hellip;</div>
+        <p class="muted">Projects the WHOLE calendar month, including shifts that haven't happened yet, assuming they run as currently scheduled &mdash; not a guarantee. Estimate only (gross, before tax).</p>
+      </div>
+    </section>
+
+    <section id="view-settings" class="view">
+      <h2>Settings</h2>
+
+      <h3>Tax code</h3>
+      <label>UK tax code (for the net-pay estimate on the Today tab)</label>
+      <input id="tax-code-input" type="text" placeholder="e.g. 1265L" maxlength="10" />
+      <button id="save-tax-code" class="primary-btn">Save tax code</button>
+      <p class="muted">Only standard numeric + "L" codes are supported (e.g. 1265L) &mdash; not BR, D0, D1, NT, 0T, or K-prefixed codes. Leave blank to show gross pay only. Update this here whenever HMRC issues you a new code.</p>
+
+      <h3>Overtime &amp; leave</h3>
+      <label>From date</label>
+      <input id="override-from" type="date" />
+      <label>To date (optional, for a range)</label>
+      <input id="override-to" type="date" />
+      <label>Action</label>
+      <select id="override-type">
+        <option value="day">Add overtime - day shift (07:00-19:00)</option>
+        <option value="night">Add overtime - night shift (19:00-07:00)</option>
+        <option value="leave">Block off as annual leave</option>
+        <option value="clear">Reset to normal schedule</option>
+      </select>
+      <button id="apply-override" class="primary-btn">Apply</button>
+
+      <h3>Active overrides</h3>
+      <div id="overrides-list" class="list"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-view="today" class="nav-btn active">Today</button>
+    <button data-view="settings" class="nav-btn">Settings</button>
+  </nav>
+
+  <div id="day-modal" class="modal hidden">
+    <div class="modal-sheet">
+      <h3 id="day-modal-title">Edit day</h3>
+      <p id="day-modal-status" class="muted">Loading...</p>
+
+      <div class="modal-actions">
+        <button data-type="day" class="tab-btn">Overtime - day shift</button>
+        <button data-type="night" class="tab-btn">Overtime - night shift</button>
+        <button data-type="leave" class="tab-btn">Annual leave</button>
+        <button data-type="clear" class="tab-btn">Reset to normal</button>
+      </div>
+
+      <h4>Hours worked</h4>
+      <div class="row">
+        <button id="hours-mode-times" class="tab-btn active">Exact times</button>
+        <button id="hours-mode-total" class="tab-btn">Total hours</button>
+      </div>
+      <div id="hours-times-fields">
+        <label>Start</label>
+        <input id="hours-start" type="time" />
+        <label>End</label>
+        <input id="hours-end" type="time" />
+      </div>
+      <div id="hours-total-fields" class="hidden">
+        <label>Total hours</label>
+        <input id="hours-total" type="number" min="0" max="24" step="0.25" />
+      </div>
+      <div class="row">
+        <button id="save-hours-btn" class="primary-btn">Save hours</button>
+        <button id="clear-hours-btn" class="ghost-btn">Clear override</button>
+      </div>
+
+      <button id="day-modal-close" class="ghost-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Load order matters: each later script uses globals the ones
+       before it define (plain scripts, no bundler/modules - kept simple
+       since this is a small, fully static app). -->
+  <script src="js/dateutils.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/bankHolidays.js"></script>
+  <script src="js/ukTax.js"></script>
+  <script src="js/localStore.js"></script>
+  <script src="js/shiftSchedule.js"></script>
+  <script src="js/payCalc.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
