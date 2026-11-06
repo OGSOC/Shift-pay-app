@@ -209,10 +209,15 @@ shift type:
 With no override, hours are computed from the day's normal schedule: the
 gap between its shift start/end (12h for a day/night shift, 8h for a
 pre-shift office day with the defaults above), or 0h for an off day. A day
-marked as **leave always counts as 0 hours for pay purposes**, even if an
-hours override happens to be stored underneath it — clearing the leave
-override brings that stored override back into effect rather than losing
-it, so it's safe to toggle leave on and off without re-entering hours.
+marked as **leave is paid as a normal day — full pay, not 0 hours**: whatever
+the rota would otherwise have scheduled that day (day/night shift or
+office hours), at the normal single rate even if the day happens to be a
+bank holiday (double rate only applies to hours actually worked on one -
+see Bank holidays below). Leave on a day the rota has you off anyway
+still pays 0, since there's no normal day's pay to stand in for. An hours
+override still takes priority over that — e.g. logging half a day of
+leave — and is preserved underneath the leave override if one is already
+stored, so it's safe to toggle leave on and off without re-entering hours.
 
 The **Pay period** section (also on the Today tab, below the calendar) has
 one shared settings card, a month navigator (←/→ arrows), and one or two
@@ -300,9 +305,9 @@ England & Wales bank holidays are marked with a small rose dot in the
 corner of their calendar cell (hover/tap for the name), and any hours
 actually worked on one — computed shift, office day, or overtime, it
 doesn't matter which — are paid at **double the hourly rate** in both pay
-cards, with a note showing how many hours that applied to. A bank holiday
-that isn't worked is still marked, just with no pay effect — leave always
-counts as 0 hours regardless.
+cards, with a note showing how many hours that applied to. Leave taken on
+a bank holiday is paid as a normal single-rate day (see above), not
+double — double rate is specifically for hours actually worked.
 
 `js/bankHolidays.js` computes all 8 standard annual bank holidays (New
 Year's Day, Good Friday, Easter Monday, the three "Monday" bank holidays

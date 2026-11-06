@@ -45,17 +45,20 @@ function getMonthStatus(periodStart, periodEnd, today) {
 
 const BANK_HOLIDAY_RATE_MULTIPLIER = 2;
 
-// Sums effective hours (override where set, else computed shift hours,
-// leave always 0) for every date from `start` to `end` inclusive, along
-// with which of those days are bank holidays - paid at
-// BANK_HOLIDAY_RATE_MULTIPLIER x the normal rate, see computeGrossPay
-// below. The override, when present, is whatever was actually recorded
-// for that day (e.g. a corrected total after the fact) - the only
-// "actual vs scheduled" distinction this app tracks - so a past month
-// already reflects real hours wherever they were logged, falling back to
-// the scheduled rota for any day that wasn't. Safe to call with start >
-// end (e.g. a future month capped at today): the loop just doesn't run,
-// giving 0 hours / no days, which is the correct "nothing earned yet".
+// Sums effective hours (override where set, else computed shift hours -
+// leave pays the hours the rota would normally have scheduled, see
+// getHoursForDate) for every date from `start` to `end` inclusive, along
+// with which of those days are paid at BANK_HOLIDAY_RATE_MULTIPLIER x the
+// normal rate (see computeGrossPay below) - hours actually worked on a
+// bank holiday, but NOT leave taken on one: that's still just a normal,
+// single-rate day off, not a reason for double pay. The override, when
+// present, is whatever was actually recorded for that day (e.g. a
+// corrected total after the fact) - the only "actual vs scheduled"
+// distinction this app tracks - so a past month already reflects real
+// hours wherever they were logged, falling back to the scheduled rota
+// for any day that wasn't. Safe to call with start > end (e.g. a future
+// month capped at today): the loop just doesn't run, giving 0 hours / no
+// days, which is the correct "nothing earned yet".
 function sumHoursInRange(start, end) {
   let totalHours = 0;
   let bankHolidayHours = 0;
@@ -64,8 +67,9 @@ function sumHoursInRange(start, end) {
     const info = getHoursForDate(d);
     totalHours += info.effectiveHours;
     if (info.effectiveHours > 0) {
-      if (info.bankHoliday) bankHolidayHours += info.effectiveHours;
-      days.push({ date: dateKey(d), hours: round2(info.effectiveHours), bankHoliday: info.bankHoliday });
+      const paysDoubleRate = Boolean(info.bankHoliday) && !info.isLeave;
+      if (paysDoubleRate) bankHolidayHours += info.effectiveHours;
+      days.push({ date: dateKey(d), hours: round2(info.effectiveHours), bankHoliday: paysDoubleRate });
     }
   }
   return { totalHours, bankHolidayHours, days };

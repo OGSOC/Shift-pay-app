@@ -94,15 +94,15 @@ function getBlockForDate(date) {
 }
 
 /**
- * Returns the shift instance (if any) that STARTS on the given calendar
- * date: a manual override (leave or an added overtime shift), an office
- * day, a day shift, a night shift, or null (day off / no rota data yet).
+ * The office/day/night shift the rota alone would give for this date, as
+ * if no manual override existed - an office day, a day shift, a night
+ * shift, or null (off day / before the rota starts). Used both by
+ * getShiftForDate (which layers any override on top) and, separately, by
+ * getHoursForDate to work out what a day taken as annual leave would
+ * otherwise have paid (leave is paid as a normal day, not as 0 hours).
  */
-function getShiftForDate(date) {
+function getScheduledShiftForDate(date) {
   const day = atMidnight(date);
-
-  const override = getOverrideShift(day);
-  if (override) return override;
 
   const preShift = getPreShiftDay(day);
   if (preShift) return preShift;
@@ -138,6 +138,20 @@ function getShiftForDate(date) {
     end: withTime(day, 19, 0),
     source: 'rota',
   };
+}
+
+/**
+ * Returns the shift instance (if any) that STARTS on the given calendar
+ * date: a manual override (leave or an added overtime shift), an office
+ * day, a day shift, a night shift, or null (day off / no rota data yet).
+ */
+function getShiftForDate(date) {
+  const day = atMidnight(date);
+
+  const override = getOverrideShift(day);
+  if (override) return override;
+
+  return getScheduledShiftForDate(day);
 }
 
 /**
@@ -183,29 +197,39 @@ function hoursBetweenTimes(startStr, endStr) {
  * Working hours for one date, for the pay calculator: computed from the
  * scheduled shift (office/day/night/overtime) by default, or from a
  * manual hours override if one is set for that date (either exact clock
- * times or a flat total). A day marked as leave always counts as 0 hours
- * for pay purposes, regardless of any hours override that might still be
- * stored underneath it (so clearing the leave override later correctly
- * brings the hours override back into effect rather than losing it).
+ * times or a flat total).
+ *
+ * A day marked as leave is paid as a normal day, not as 0 hours: full pay
+ * for whatever the rota would otherwise have scheduled that day (office
+ * hours, a day shift, or a night shift), via getScheduledShiftForDate -
+ * an off day in the rota still pays 0, since there's no "normal day" to
+ * be paid for. An hours override still takes priority over that, so a
+ * partial/half day of leave can still be logged manually.
  *
  * bankHoliday is the England & Wales bank holiday name for this date, or
- * null - the pay calculator (payCalc.js) pays double rate for any hours
- * actually worked (effectiveHours > 0) on a day this is set for,
- * regardless of shift type.
+ * null - the pay calculator (payCalc.js) pays double rate for hours
+ * actually worked on one, but not for leave taken on one (that's still
+ * just a normal, single-rate day off).
  */
 function getHoursForDate(date) {
   const day = atMidnight(date);
   const shift = getShiftForDate(day);
   const isLeave = shift?.shiftType === 'leave';
 
-  const computedHours = shift && !isLeave ? (shift.end.getTime() - shift.start.getTime()) / 3600000 : 0;
+  let computedHours;
+  if (isLeave) {
+    const scheduled = getScheduledShiftForDate(day);
+    computedHours = scheduled ? (scheduled.end.getTime() - scheduled.start.getTime()) / 3600000 : 0;
+  } else {
+    computedHours = shift ? (shift.end.getTime() - shift.start.getTime()) / 3600000 : 0;
+  }
 
   const override = getHoursOverride(dateKey(day));
   const overrideHours = override
     ? (override.mode === 'total' ? override.hours : hoursBetweenTimes(override.start, override.end))
     : null;
 
-  const effectiveHours = isLeave ? 0 : (overrideHours != null ? overrideHours : computedHours);
+  const effectiveHours = overrideHours != null ? overrideHours : computedHours;
 
   return { date: day, shift, isLeave, computedHours, override, overrideHours, effectiveHours, bankHoliday: getBankHolidayName(day) };
 }

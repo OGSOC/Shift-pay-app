@@ -326,7 +326,10 @@ function renderDayModalStatus(info) {
   const el = $('#day-modal-status');
   const holidayNote = info.bankHoliday ? ` [${info.bankHoliday} - bank holiday]` : '';
   if (info.isLeave) {
-    el.textContent = `Annual leave - 0 hours for pay purposes.${holidayNote}`;
+    const overrideNote = info.hoursOverride
+      ? ` - manual override in effect: ${info.effectiveHours}h`
+      : '';
+    el.textContent = `Annual leave - paid as a normal day (${info.computedHours}h, full pay).${overrideNote}${holidayNote}`;
     return;
   }
   if (!info.onShift) {
