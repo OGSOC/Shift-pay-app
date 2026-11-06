@@ -16,7 +16,25 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        // Fixed, checked-in debug keystore - NOT a secret, debug keys never
+        // are (this is the same convention as Android's own auto-generated
+        // one). Needed because a CI runner has no ~/.android/debug.keystore
+        // of its own: left unset, every fresh runner would generate a new
+        // one, giving each CI-built APK a different signature and making
+        // every update un-installable over the last ("package conflicts
+        // with an existing package").
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
